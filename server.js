@@ -63,14 +63,28 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    // Safety check before attempting to connect to the database
+    // Note: Change 'MONGO_URI' if your db.js uses a different variable name like 'DB_URL'
+    if (!process.env.MONGO_URI) {
+      console.error('\n❌ FATAL ERROR: MONGO_URI environment variable is missing.');
+      console.error('👉 Fix: Go to your Render Dashboard -> Environment -> Add Environment Variable -> Key: MONGO_URI, Value: <your_mongodb_connection_string>\n');
+      process.exit(1); 
+    }
 
-  server.listen(PORT, () => {
-    console.log(`\n🚀 Server running on port ${PORT}`);
-    console.log(`📡 Socket.IO ready`);
-    console.log(`🌐 Client URL: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
-    console.log(`📋 API Health: http://localhost:${PORT}/api/health\n`);
-  });
+    await connectDB();
+
+    server.listen(PORT, () => {
+      console.log(`\n🚀 Server running on port ${PORT}`);
+      console.log(`📡 Socket.IO ready`);
+      console.log(`🌐 Client URL: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
+      console.log(`📋 API Health: http://localhost:${PORT}/api/health\n`);
+    });
+  } catch (error) {
+    console.error('\n❌ Server failed to start:');
+    console.error(error.message);
+    process.exit(1);
+  }
 };
 
 startServer();
